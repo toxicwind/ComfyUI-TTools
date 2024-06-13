@@ -8,10 +8,8 @@ import logging
 import json
 
 class AnyType(str):
-
     def __ne__(self, __value: object) -> bool:
         return False
-
 
 any_typ = AnyType("*")
 
@@ -441,9 +439,11 @@ class TToolsSD3ResolutionSolver:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "x": ("INT", {"display": "number"}),
-                "y": ("INT", {"display": "number"}),
+                "x": ("INT", {"display": "number", "default": 1024}),
+                "y": ("INT", {"display": "number", "default": 1024}),
+                "max_long_side": ("INT", {"display": "number", "default": 1280}),
                 "format": (["Portrait", "Landscape"], {"default": "Portrait"}),
+                "skip_if_mulof64": ("BOOLEAN", {"default": False}),
             },
         }
 
@@ -452,11 +452,17 @@ class TToolsSD3ResolutionSolver:
     FUNCTION = "solve"
     CATEGORY = "utils"
 
-    def solve(self, x, y, format):
+    def solve(self, x, y, format, max_long_side, skip_if_mulof64):
+        if skip_if_mulof64 and x % 64 == 0 and y % 64 == 0:
+            return x, y
+
         scale = (1000000 / (x * y)) ** 0.5
         x_adjusted, y_adjusted = (int(x * scale) // 64) * 64, (int(y * scale) // 64) * 64
-        return (max(x_adjusted, y_adjusted), min(x_adjusted, y_adjusted)) if format == 'Landscape' else (min(x_adjusted, y_adjusted), max(x_adjusted, y_adjusted))
-
+        width, height = (max(x_adjusted, y_adjusted), min(x_adjusted, y_adjusted)) if format == 'Landscape' else (min(x_adjusted, y_adjusted), max(x_adjusted, y_adjusted))
+        if max(width, height) > max_long_side:
+            scale = max_long_side / max(width, height)
+            width, height = int(width * scale), int(height * scale)
+        return width, height
 
 NODE_CLASS_MAPPINGS = {
     "TTools SD3 Resolution Solver": TToolsSD3ResolutionSolver,
