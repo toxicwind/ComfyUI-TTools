@@ -1,18 +1,11 @@
-import os
 import spacy
 import spacy.lang.en
-import inspect
-import textwrap
-import nodes
 import re
 import random
 import itertools
-from functools import reduce
-import unicodedata
 import emoji
 import logging
 import json
-
 
 class AnyType(str):
 
