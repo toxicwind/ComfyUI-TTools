@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-ttools"
+description = "Text Randomization and Formatting, JSON Extraction and Processing, SD3 Resolution Solver"
+version = "1.0.0"
+license = "LICENSE"
+dependencies = ["spacy", "spacy-lang-en", "re", "random", "itertools", "emoji", "logging", "json"]
+
+[project.urls]
+Repository = "https://github.com/toxicwind/ComfyUI-TTools"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-TTools"
+Icon = ""
