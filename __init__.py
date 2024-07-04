@@ -50,197 +50,7 @@ for word in remove_stop_word_tokens:
 # Print the remaining stop words
 remaining_stop_words = list(nlp.Defaults.stop_words)
 remaining_stop_words.sort()
-print(", ".join(remaining_stop_words))
-
-class TToolsRandomizeAndFormatString:
-    """
-    This class replaces specified characters and patterns in a string with commas,
-    then randomizes the order of the resulting tokens, converts them to lowercase,
-    and finally joins them back into a comma-separated string without extra spaces.
-    """
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "input_string": ("STRING", {
-                    "multiline": True
-                }),
-                "and_string": ("STRING", {
-                    "default": ",",
-                    "multiline": False
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xFFFFFFFFFFFFFFFF
-                }),
-                "max_length": ("INT", {
-                    "default": 1024,
-                    "min": 0,
-                    "max": 999999999
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING", )
-    FUNCTION = "doit"
-    CATEGORY = "utils"
-
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(message)s')
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
-        self.logger.addHandler(stream_handler)
-
-    def recursive_replace(self, processed_string, words_to_replace):
-        while True:
-            old_processed_string = processed_string
-            for word in words_to_replace:
-                processed_string = re.sub(re.escape(word), ",",
-                                          processed_string)
-            if old_processed_string == processed_string:
-                break
-        processed_string = re.sub(",{2,}", ",", processed_string)
-        words = processed_string.split(',')
-        random.shuffle(words)
-        processed_string = ','.join(words)
-        return processed_string
-
-    def remove_stop_words(self, text, and_string=","):
-        AND_STRING = and_string
-        text = text.replace(" - ", AND_STRING)
-        text = text.replace(" -", AND_STRING)
-        text = text.replace("- ", AND_STRING)
-        text = text.replace(" -", AND_STRING)
-        return text
-
-    def remove_emoji(self, text: str) -> str:
-        """
-        Removes emoji characters from the input text.
-
-        Args:
-        text (str): The input text containing emoji characters.
-
-        Returns:
-        str: The input text with emoji characters removed.
-        """
-        return ''.join(char for char in text if not emoji.is_emoji(char))
-
-    def doit(self, input_string, and_string, max_length=1024, seed=0):
-        self.logger.debug("Initial input string: %s", input_string)
-        random.seed(seed)
-        input_string = input_string.lower()
-        with open('words_to_replace.txt', 'r') as file:
-            words_to_replace = file.read().splitlines()
-
-        words_to_replace = [word.lower() for word in words_to_replace]
-        words_to_replace.sort(key=len, reverse=True)
-        self.logger.debug("Words to replace: %s", words_to_replace)
-        input_string = self.recursive_replace(input_string, words_to_replace)
-        self.logger.debug("After recursive_replace: %s", input_string)
-        input_string = input_string.replace(",", "")
-        self.logger.debug("After lowercase and comma replacement: %s",
-                          input_string)
-        preserved_periods = re.sub(r"\d+\.(?!\d)", ",", input_string)
-        preserved_periods = re.sub(r"(?<!\d)\.|\.(?!\d)", ",",
-                                   preserved_periods)
-        preserved_periods = re.sub(r"(?<=\s):(?=\s)", ",", preserved_periods)
-        preserved_periods = re.sub(r"(?<=[a-zA-Z]):(?!\d)", " ",
-                                   preserved_periods)
-        preserved_periods = preserved_periods.replace(":", ",")
-        preserved_periods = preserved_periods.replace("s'", "s")
-        preserved_periods = re.sub(r"(?<!\w)'(?!\w)", ",", preserved_periods)
-        preserved_periods = re.sub(r"(?<!\w)-(?!\w)", ",", preserved_periods)
-        preserved_periods = re.sub(r"(?<!\s)'(?!\s)", "", preserved_periods)
-        processed_string = preserved_periods
-        self.logger.debug("After period replacements: %s", processed_string)
-        processed_string = self.remove_stop_words(processed_string, and_string)
-        processed_string = self.remove_emoji(processed_string)
-        self.logger.debug("After remove_stop_words: %s", processed_string)
-        processed_string = processed_string.replace(";", ",")
-        processed_string = processed_string.replace("!", ",")
-        processed_string = processed_string.replace("?", ",")
-        processed_string = processed_string.replace("“", ",")
-        processed_string = processed_string.replace("”", ",")
-        processed_string = processed_string.replace('"', ",")
-        processed_string = processed_string.replace("‘", ",")
-        processed_string = processed_string.replace("’", ",")
-        processed_string = processed_string.replace("[", ",")
-        processed_string = processed_string.replace("]", ",")
-        processed_string = processed_string.replace("{", ",")
-        processed_string = processed_string.replace("}", ",")
-        processed_string = processed_string.replace("|", ",")
-        processed_string = processed_string.replace("#", ",")
-        processed_string = processed_string.replace("@", ",")
-        processed_string = processed_string.replace("$", ",")
-        processed_string = processed_string.replace("%", ",")
-        processed_string = processed_string.replace("&", ",")
-        processed_string = processed_string.replace("*", ",")
-        processed_string = processed_string.replace(" - ", ",")
-        processed_string = processed_string.replace("---", ",")
-        processed_string = processed_string.replace("--", ",")
-        processed_string = processed_string.replace("- ", ",")
-        processed_string = processed_string.replace(" -", ",")
-        processed_string = processed_string.replace("…", ",")
-        processed_string = processed_string.replace("...", ",")
-        processed_string = processed_string.replace("..", ",")
-        processed_string = processed_string.replace(".", ",")
-        processed_string = processed_string.replace("=>", ",")
-        processed_string = processed_string.replace("->", ",")
-        processed_string = processed_string.replace('\\n', ",")
-        processed_string = processed_string.replace("' ", ",")
-        processed_string = processed_string.replace(" '", ",")
-        processed_string = processed_string.replace("/", "")
-        processed_string = processed_string.replace('\\\\', "")
-        processed_string = processed_string.replace("<", "")
-        processed_string = processed_string.replace(">", "")
-        processed_string = processed_string.replace("=", "")
-        processed_string = processed_string.replace("+", "")
-        processed_string = processed_string.replace("_", " ")
-        processed_string = processed_string.replace("^", "")
-        processed_string = re.sub(r" {2,}", " ", processed_string)
-        processed_string = re.sub(r"\s+", " ", processed_string)
-        self.logger.debug("After processed_string: %s", processed_string)
-        initial_tokens = [
-            token.strip().lower() for token in processed_string.split(",")
-            if token.strip()
-        ]
-        self.logger.debug("Initial number of tokens: %s", len(initial_tokens))
-
-        tokens = [
-            self.remove_stop_words(token).strip() for token in initial_tokens
-        ]
-        self.logger.debug("Number of tokens after removing stop words: %s",
-                          len(tokens))
-
-        tokens = [token for token in tokens if 3 <= len(token) <= 75]
-        self.logger.debug("Number of tokens after length filtering: %s",
-                          len(tokens))
-
-        total_tokens = len(tokens)
-        selected_tokens = []
-        for token in tokens:
-            if total_tokens >= max_length:
-                break
-            selected_tokens.append(token)
-            total_tokens += 1
-
-        self.logger.debug("Number of selected tokens: %s",
-                          len(selected_tokens))
-
-        final_tokens = tokens + selected_tokens
-        random.shuffle(final_tokens)
-
-        output_string = ", ".join(token for token in final_tokens if token)
-        output_string = output_string.strip(", ")
-
-        self.logger.debug("Final output string: %s", output_string)
-
-        return (output_string, )
+print("TTools - Stop Words: " + ", ".join(remaining_stop_words))
 
 
 class TToolsExtractJson:
@@ -323,7 +133,7 @@ class TToolsExtractJson:
              remove_stop_words=False):
         random.seed(seed)
         input_string = input_string.lower()
-        print("Initial input string: ", input_string)
+        #print("Initial input string: ", input_string)
         values = self.extract_and_process_json_from_string(input_string)
         replacements = [
             ('_', ' '),
@@ -365,30 +175,21 @@ class TToolsExtractJson:
                         key=len,
                         reverse=True)
         values = [re.sub(r" {2,}", " ", value.strip()) for value in values]
-        print("Initial value count: ", len(values))
-        print("Extracted values: ")
-        for i, v in enumerate(values, start=1):
-            print(f"{i}: {v}")
+        # print("Initial value count: ", len(values))
+        # print("Extracted values: ")
         if remove_stop_words:
-            print("Values before removing stop words: ")
-            for i, v in enumerate(values, start=1):
-                print(f"{i}: {v}")
+            # print("Values before removing stop words: ")
             values = [self.remove_stop_words(v) for v in values]
-            print("Values after removing stop words: ")
-            for i, v in enumerate(values, start=1):
-                print(f"{i}: {v}")
+            # print("Values after removing stop words: ")
 
-        print("Value count after processing: ", len(values))
 
-        print("Extracted values: ")
-        for i, v in enumerate(values, start=1):
-            print(f"{i}: {v}")
+        # print("Value count after processing: ", len(values))
         #sort values
         values.sort(key=len, reverse=True)
         # remove duplicate values
         values = list(dict.fromkeys(values))
 
-        print("Value count after removing duplicates: ", len(values))
+        # print("Value count after removing duplicates: ", len(values))
         # Sort the values by length
         values.sort(key=len, reverse=False)
         # filter values based on length and remove "and " from the beginning
@@ -397,7 +198,7 @@ class TToolsExtractJson:
             for value in values
             if min_part_length <= len(value) <= max_part_length
         ]
-        print("Value count after filtering by length: ", len(values))
+        # print("Value count after filtering by length: ", len(values))
         # Find the midpoint
         midpoint = len(values) // 2
 
@@ -420,14 +221,8 @@ class TToolsExtractJson:
         # remove duplicate values
         values = list(dict.fromkeys(values))
 
-        print(
-            "Value count after removing duplicates and filtering by length: ",
-            len(values))
-        print("Selected values: ")
-        for i, v in enumerate(selected_values, start=1):
-            print(f"{i}: {v}")
         output_string = ", ".join(str(v) for v in selected_values)
-        print("Final output string: ", output_string)
+        # print("Final output string: ", output_string)
         return (output_string, )
 
 
@@ -466,12 +261,10 @@ class TToolsSD3ResolutionSolver:
 
 NODE_CLASS_MAPPINGS = {
     "TTools SD3 Resolution Solver": TToolsSD3ResolutionSolver,
-    "TTools Randomize And Format String": TToolsRandomizeAndFormatString,
     "TTools Extract JSON": TToolsExtractJson
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "TToolsSD3ResolutionSolver": "TTools SD3 Resolution Solver",
-    "TToolsRandomizeAndFormatString": "TTools Randomize And Format String",
     "TToolsExtractJson": "TTools Extract JSON",
 }
