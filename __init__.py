@@ -1,10 +1,8 @@
-import spacy
 import spacy.lang.en
 import re
 import random
 import itertools
 import emoji
-import logging
 import json
 
 class AnyType(str):
@@ -13,6 +11,7 @@ class AnyType(str):
 
 any_typ = AnyType("*")
 
+spacy.cli.download("en_core_web_sm")
 nlp = spacy.load("en_core_web_sm")
 
 # List of words to remove from stop words list
